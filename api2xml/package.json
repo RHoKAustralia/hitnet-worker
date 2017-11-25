@@ -1,0 +1,14 @@
+{
+  "name": "api2xml",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "1.2.1",
+    "xml2js": "0.4.19"
+  },
+  "devDependencies": {
+    "@google-cloud/nodejs-repo-tools": "1.4.17"
+  }
+}
