@@ -1,0 +1,1 @@
+Worker process for hitnet to take the module/hub data ad generate the XML files
