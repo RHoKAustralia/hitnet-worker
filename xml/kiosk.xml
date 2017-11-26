@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <config>
-  <kiosk id="NN0046"/>
+  <kiosk id="NN0054"/>
   <content-library>
     <modules>
       <module id="An Identifier" path="A Path"/>
+      <module id="An Second Identifier" path="A Path"/>
     </modules>
   </content-library>
 </config>

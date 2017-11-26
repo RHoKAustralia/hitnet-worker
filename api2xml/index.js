@@ -10,6 +10,8 @@ const path = require('path');
 const storage = require('@google-cloud/storage')();
 const config = require( "./config.json" );
 const xml2js = require('xml2js');
+const fetch = require('node-fetch');
+const UrlAssembler = require('url-assembler');
 
 exports.api2xml = function api2xml(req, res) {
 
@@ -35,23 +37,37 @@ exports.api2xml = function api2xml(req, res) {
               console.log(`${trackid}: Downloaded '${file.name}' to '${tempLocalFilename}'.`);
               return xmlFileToJs(tempLocalFilename);
             })
-            .then((obj) => {
+            .then((xmlAsJson) => {
               console.log(`${trackid}: Read temporary file '${tempLocalFilename}'`);
-              if (obj.config === undefined){
+              if (xmlAsJson.config === undefined){
                 console.log(`${trackid}: File '${file.name}' is not a kiosk xml file, skipping.`);
                 return Promise.resolve(false);
               }
-              var kioskid = obj.config['kiosk'][0].$.id;
+              var kioskid = xmlAsJson.config['kiosk'][0].$.id;
               console.log(`${trackid}: Fetching data for kiosk '${kioskid}'.`);
               /* make api call here */
+              var url = UrlAssembler(config.hitnet_api_server)
+                .template('/getModulesByHubID')
+                .query({"id": kioskid})
+                .toString();
 
-              var modules = [];
-              modules.push({ module: { $: { id: 'another module', path: 'module path' }}});
+              console.log(`${trackid}: calling ${url}`);
+              return fetch(url)
+                .then(res => {
+                  return res.json();
+                })
+                .then(moduleData => {
 
-              var library = obj.config['content-library'][0];
-              library.modules = modules;
+                  var modules = [];
+                  moduleData.forEach(m => {
+                    modules.push({"module": { '$': { id: m.name, path: m.path }}});
+                  });
 
-              return jsToXmlFile(tempLocalFilename, obj);
+                  var library = xmlAsJson.config['content-library'][0];
+                  library.modules[0] = modules;
+
+                  return jsToXmlFile(tempLocalFilename, xmlAsJson);
+                });
             })
             .then((saved) => {
               if (saved) {
