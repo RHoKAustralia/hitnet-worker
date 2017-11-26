@@ -54,19 +54,26 @@ exports.api2xml = function api2xml(req, res) {
               console.log(`${trackid}: calling ${url}`);
               return fetch(url)
                 .then(res => {
-                  return res.json();
+                  if (res.status === 200){
+                    return res.json();
+                  } else {
+                    return Promise.resolve([]);
+                  }
                 })
                 .then(moduleData => {
+                  if (moduleData.length > 0){
+                    var modules = [];
+                    moduleData.forEach(m => {
+                      modules.push({"module": { '$': { id: m.name, path: m.path }}});
+                    });
 
-                  var modules = [];
-                  moduleData.forEach(m => {
-                    modules.push({"module": { '$': { id: m.name, path: m.path }}});
-                  });
-
-                  var library = xmlAsJson.config['content-library'][0];
-                  library.modules[0] = modules;
-
-                  return jsToXmlFile(tempLocalFilename, xmlAsJson);
+                    var library = xmlAsJson.config['content-library'][0];
+                    library.modules[0] = modules;
+                    return jsToXmlFile(tempLocalFilename, xmlAsJson);
+                  } else {
+                    console.log(`${trackid}: No data found for kiosk '${kioskid}', skipping.`);
+                    return Promise.resolve(false);
+                  }
                 });
             })
             .then((saved) => {
